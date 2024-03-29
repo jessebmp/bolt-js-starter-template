@@ -4,6 +4,7 @@ const { config } = require('dotenv');
 const { registerListeners } = require('./listeners');
  
 let Soul, said;
+let sayFunction = null;
 
 config();
 
@@ -32,6 +33,9 @@ import("soul-engine/soul").then((module) => {
   // Listen for responses from the soul
   soul.on("says", async ({ content }) => {
     console.log("Time Bandit said", await content());
+    if (sayFunction) {
+      await sayFunction(await content());
+    }
   });
 
   // Connect the soul to the engine
@@ -48,9 +52,9 @@ import("soul-engine/soul").then((module) => {
     // event.user will contain the user ID of the user who mentioned your app
 
     // You can use the say function to send a message to the channel where the app was mentioned
-    await say(`Hello <@${event.user}>!`);
+    // await say(`Hello <@${event.user}>!`);
     soul.dispatch(said(event.user, event.text));
-    
+    sayFunction = say;
   });
 });
 
