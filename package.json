@@ -22,6 +22,7 @@
     "url": "https://github.com/slack-samples/bolt-js-starter-template/issues"
   },
   "dependencies": {
+    "@opensouls/core": "^0.1.20",
     "@slack/bolt": "^3.17.1",
     "dotenv": "~16.4.5",
     "soul-engine": "^0.0.50"
