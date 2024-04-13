@@ -2,11 +2,11 @@
 const { App, LogLevel } = require('@slack/bolt');
 const { config } = require('dotenv');
 const { registerListeners } = require('./listeners');
-
-config();
-
+ 
 let Soul, said;
 let sayFunction = null;
+
+config();
 
 /** Initialization */
 const app = new App({
@@ -19,59 +19,56 @@ const app = new App({
 /** Register Listeners */
 registerListeners(app);
 
-// Dynamic import for soul engine modules
 import("soul-engine/soul").then((module) => {
   Soul = module.Soul;
   said = module.said;
 
-  // Create a new instance of Soul with a unique identifier
+  // Create a new Soul instance with a new unique identifier
   const soul = new Soul({
     organization: "jessebmp",
     blueprint: "time-bandit",
   });
+  
 
-  // Listen for and handle responses from the soul
+  // Listen for responses from the soul
   soul.on("says", async ({ content }) => {
-    console.log("Time Bandit said:", await content());
+    console.log("Time Bandit said", await content());
     if (sayFunction) {
       await sayFunction(await content());
     }
   });
 
-  // Connect to the soul engine
-  soul.connect().then(() => {
-    console.log("Soul connection established.");
-  }).catch(console.error);
+  // Connect the soul to the engine
+  soul.connect().then(async () => {
+    // Send a greeting to the soul
+    // soul.dispatch(said("Jesse", "Hi!"));
+  });
 
-  // Event handler for bot mentions
-  app.event('app_mention', async ({ event, context, say, client }) => {
-    // Prevent the bot from responding to its own messages
-    if (event.user === 'U06RJ5DGPS8') {
-      console.log('Skipping responding to self.');
-      return;
-    }
 
-    // Fetch user profile information
+  // First attempt at @'ing the bot
+  app.event('app_mention', async ({ event, say, client }) => {
+    // You can access the event object here
+    // event.text will contain the text of the message
+    // event.user will contain the user ID of the user who mentioned your app
+
+    // Get the user's profile information
     const result = await client.users.info({ user: event.user });
     const username = result.user.real_name;
 
-    // Determine if the mention was in a thread
-    const thread_ts = event.thread_ts || event.ts;
-
     // Dispatch the message with the user's real name
     soul.dispatch(said(username, event.text));
-
-    // Update sayFunction to respond in the correct thread
-    sayFunction = (message) => say({ text: message, thread_ts: thread_ts });
+    sayFunction = say;
   });
-}).catch(console.error);
+});
 
-/** Start the Bolt App */
+
+
+/** Start Bolt App */
 (async () => {
   try {
     await app.start(process.env.PORT || 3000);
     console.log('⚡️ Bolt app is running! ⚡️');
   } catch (error) {
-    console.error('Unable to start App:', error);
+    console.error('Unable to start App', error);
   }
 })();
