@@ -46,14 +46,17 @@ import("soul-engine/soul").then((module) => {
 
 
   // First attempt at @'ing the bot
-  app.event('app_mention', async ({ event, say }) => {
+  app.event('app_mention', async ({ event, say, client }) => {
     // You can access the event object here
     // event.text will contain the text of the message
     // event.user will contain the user ID of the user who mentioned your app
 
-    // You can use the say function to send a message to the channel where the app was mentioned
-    // await say(`Hello <@${event.user}>!`);
-    soul.dispatch(said(event.user, event.text));
+    // Get the user's profile information
+    const result = await client.users.info({ user: event.user });
+    const username = result.user.real_name;
+
+    // Dispatch the message with the user's real name
+    soul.dispatch(said(username, event.text));
     sayFunction = say;
   });
 });
